@@ -1,15 +1,11 @@
+const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
-
-const srcPath = path.resolve(__dirname, 'src');
-const dir = {
-  js: `${srcPath}/scripts`,
-  style: `${srcPath}/styles`,
-  imgs: `${srcPath}/images`,
-};
+const rootPath = path.resolve(__dirname);
+const pagePath = `${rootPath}/src/pages`;
 
 const htmlCommonChunks = ['vendor', 'runtime'];
 const htmlMinifyOptions = {
@@ -17,16 +13,44 @@ const htmlMinifyOptions = {
   removeComments: true,
 };
 
+const pageFiles = fs.readdirSync(pagePath);
+let pageEntryObj = {};
+let htmlObjArr = [];
+
+pageFiles.forEach((v, i) => {
+  pageEntryObj[v] = [`${pagePath}/${v}/index.js`];
+  let htmlObj = {
+    filename: `${v}.html`,
+    template: `${pagePath}/${v}/${v}.html`,
+    chunks: [`${v}`, ...htmlCommonChunks],
+    minify: htmlMinifyOptions,
+  };
+  htmlObjArr.push(new HtmlWebpackPlugin(htmlObj));
+})
+
 module.exports = {
   entry: {
-    register: [
-      `${dir.js}/register.js`,
-    ],
-    download: [
-      `${dir.js}/download.js`,
-    ],
-    vendor: ['jquery'],
+    ...pageEntryObj,
+    vendor: ['jquery', 'babel-polyfill', 'whatwg-fetch'],
   },
+
+  plugins: [
+    new CleanWebpackPlugin(['dist']),
+    // 提取公共模块,name里的文件必须在 entry 里生成
+    new webpack.optimize.CommonsChunkPlugin({
+      names: ['vendor', 'runtime','manifest'],
+    }),
+
+    ...htmlObjArr,
+
+    // 拆分文件中的css
+    new ExtractTextPlugin({
+      filename: '[name].[contenthash].css',
+    }),
+    new webpack.ProvidePlugin({
+      $: 'jquery'
+    })
+  ],
   module: {
     rules: [
       {
@@ -36,18 +60,20 @@ module.exports = {
           use: ['css-loader', 'sass-loader'],
         }),
       },
+
       {
         test: /\.js$/,
         exclude: /(node_modules|bower_components)/,
         use: {
           loader: 'babel-loader',
-        }
+        },
       },
       {
         test: /\.(png|jpg|svg|gif)$/,
         use: {
           loader: 'url-loader',
           options: {
+            // 小于8kb自动转成base64的方式
             limit: 8192,
           },
         },
@@ -58,34 +84,6 @@ module.exports = {
           loader: 'html-loader',
         },
       },
-    ]
+    ],
   },
-  plugins: [
-    new CleanWebpackPlugin(['./dist']),
-    // 提取公共模块
-    new webpack.optimize.CommonsChunkPlugin({
-      names: ['vendor', 'runtime'],
-    }),
-    new HtmlWebpackPlugin({
-      filename: 'register.html',
-      template: `${srcPath}/register.html`,
-      chunks: ['register', ...htmlCommonChunks],
-      minify: htmlMinifyOptions,
-    }),
-    new HtmlWebpackPlugin({
-      filename: 'download.html',
-      template: `${srcPath}/download.html`,
-      chunks: ['download', ...htmlCommonChunks],
-      minify: htmlMinifyOptions,
-    }),
-    //  防止将样式打包在js中引起页面样式加载错乱的现象
-    new ExtractTextPlugin({
-      filename: '[name].[contenthash].css',
-    }),
-    new webpack.DefinePlugin({
-      'process.env': {
-        'NODE_ENV': JSON.stringify('production')
-      }
-    }),
-  ]
 };

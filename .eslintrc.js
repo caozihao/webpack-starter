@@ -1,4 +1,4 @@
-module.exports = {
+/* module.exports = {
   "extends": "airbnb-base",
   "plugins": [
     "import"
@@ -8,4 +8,4 @@ module.exports = {
     "linebreak-style": [0],
     "import/no-extraneous-dependencies": [0],
   }
-};
+}; */

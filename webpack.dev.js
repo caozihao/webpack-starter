@@ -8,11 +8,14 @@ module.exports = merge(common, {
     filename: '[name].js',
     path: path.resolve(__dirname, 'dist'),
   },
+  plugins: [
+    // new webpack.NamedModulesPlugin(),
+    // new webpack.HotModuleReplacementPlugin(),
+  ],
   devtool: 'inline-source-map',
   devServer: {
     contentBase: path.join(__dirname, 'dist'),
+    port: 8000,
   },
-  plugins: [
 
-  ],
 });

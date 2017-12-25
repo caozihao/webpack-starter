@@ -1,7 +1,8 @@
-// const webpack = require('webpack');
-const path = require('path');
+const webpack = require('webpack');
 const merge = require('webpack-merge');
+const path = require('path');
 const common = require('./webpack.common');
+
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 module.exports = merge(common, {
@@ -10,8 +11,7 @@ module.exports = merge(common, {
     path: path.resolve(__dirname, 'dist'),
   },
   plugins: [
-    // new webpack.HashedModuleIdsPlugin(),
-    // new CleanWebpackPlugin(['./dist/*.bundle.js']),
+    new webpack.HashedModuleIdsPlugin(),
     new UglifyJsPlugin(),
   ],
 });
