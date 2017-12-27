@@ -38,7 +38,7 @@ module.exports = {
     new CleanWebpackPlugin(['dist']),
     // 提取公共模块,name里的文件必须在 entry 里生成
     new webpack.optimize.CommonsChunkPlugin({
-      names: ['vendor', 'runtime','manifest'],
+      names: ['vendor', 'runtime'],
     }),
 
     ...htmlObjArr,
